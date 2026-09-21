@@ -1,0 +1,15 @@
+{
+  "name": "guardcmd",
+  "description": "Agent skills for adding GuardCMD abuse protection to an app: find the abuse surfaces, wire the SDK, screen prompts and agent tool calls.",
+  "owner": {
+    "name": "GuardCMD",
+    "url": "https://guardcmd.ai"
+  },
+  "plugins": [
+    {
+      "name": "guardcmd",
+      "description": "Protect signups, logins, AI endpoints and agent tool calls with GuardCMD, shadow mode first.",
+      "source": "./"
+    }
+  ]
+}
