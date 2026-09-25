@@ -5,6 +5,8 @@ signups, logins, AI generations, messages, agent tool calls — from 0 to 100 an
 returns one graduated action: `allow`, `challenge`, `throttle`, `review`, or
 `block`.
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/guardcmd-guardcmd-x18fqc?v=b204003f31dc3835a3fe63dd6d72b248)](https://m8ven.ai/mcp/guardcmd-guardcmd-x18fqc)
+
 - **Site and dashboard:** [guardcmd.ai](https://guardcmd.ai)
 - **API:** `https://api.guardcmd.com`
 - **SDK:** [`guardcmd`](https://www.npmjs.com/package/guardcmd)
