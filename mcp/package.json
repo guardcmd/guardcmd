@@ -1,0 +1,55 @@
+{
+  "name": "guardcmd-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for GuardCMD: abuse checks, prompt screening, agent tool-call authorization, and project/policy management for Claude Code, Cursor, and AI apps.",
+  "type": "module",
+  "bin": {
+    "guardcmd-mcp": "dist/stdio.js",
+    "abuseguard-mcp": "dist/stdio.js"
+  },
+  "files": [
+    "dist/stdio.js",
+    "dist/stdio.d.ts",
+    "dist/server.js",
+    "dist/server.d.ts",
+    "dist/client.js",
+    "dist/client.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node -e \"try{require('fs').chmodSync('dist/stdio.js',0o755)}catch(e){}\"",
+    "start": "node dist/http.js",
+    "start:stdio": "node dist/stdio.js",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test dist-test/test/*.test.js",
+    "pretest": "tsc -p tsconfig.test.json",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "guardcmd",
+    "abuse-detection",
+    "fraud",
+    "claude",
+    "cursor"
+  ],
+  "author": "GuardCMD",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.6.0"
+  },
+  "homepage": "https://guardcmd.ai"
+}

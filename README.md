@@ -13,7 +13,8 @@ returns one graduated action: `allow`, `challenge`, `throttle`, `review`, or
 - **MCP server:** [`guardcmd-mcp`](https://www.npmjs.com/package/guardcmd-mcp)
 
 This repository holds GuardCMD's **agent skill**, so your coding agent can add
-protection for you.
+protection for you, and the auditable source for the **MCP server** in
+[`mcp/`](mcp/).
 
 ## Start with a prompt
 
@@ -86,6 +87,14 @@ Bot signups and multi-accounting · credential stuffing and password spraying ·
 free-credit and trial farming · LLM token farming and denial of wallet ·
 scraping and bulk export · SMS/OTP toll fraud · spam and abusive content ·
 prompt injection and unauthorized agent tool calls.
+
+## MCP server source
+
+[`mcp/`](mcp/) is the source for the [`guardcmd-mcp`](https://www.npmjs.com/package/guardcmd-mcp)
+npm package: all 20 tools, the stdio and HTTP transports, and the test suite. It builds
+byte-for-byte to the published `guardcmd-mcp@0.1.0`, and
+[`mcp/PROVENANCE.md`](mcp/PROVENANCE.md) shows how to check that yourself. The server only
+talks to the public API at `https://api.guardcmd.com`.
 
 ## Docs
 
