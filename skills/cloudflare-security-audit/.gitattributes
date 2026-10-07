@@ -1,0 +1,2 @@
+# Keep vendored upstream files byte-for-byte (no EOL normalization).
+* -text

@@ -1,7 +1,7 @@
 {
   "name": "guardcmd",
-  "version": "0.1.0",
-  "description": "Agent skill for adding GuardCMD abuse protection to an app.",
+  "version": "0.2.0",
+  "description": "Agent skills for GuardCMD: add abuse protection to an app, apply GuardCMD Fix Packs, and run Cloudflare's security-audit skill (MIT, vendored) for deep audits.",
   "author": {
     "name": "GuardCMD",
     "url": "https://guardcmd.ai"
