@@ -501,8 +501,10 @@ test("initialize + tools/list exposes all tools", async () => {
       "create_protection_pr",
       "create_scan",
       "explain_decision",
+      "get_fix_pack",
       "get_metrics",
       "get_policy",
+      "get_recommendation_fix_pack",
       "get_scan",
       "get_usage",
       "list_abuse_surfaces",
@@ -510,12 +512,14 @@ test("initialize + tools/list exposes all tools", async () => {
       "list_policies",
       "list_projects",
       "list_recommendations",
+      "list_security_audits",
       "promote_policy",
       "rollback_policy",
       "scan_repository",
       "screen_prompt",
       "set_rate_limit",
       "submit_feedback",
+      "upload_security_audit",
     ]);
 
     // `create_scan` is back in the tool list — but ONLY as a documented, deprecated alias of

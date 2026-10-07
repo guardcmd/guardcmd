@@ -112,8 +112,8 @@ your next Fix Pack. Credit and thanks to Cloudflare.
 ## MCP server source
 
 [`mcp/`](mcp/) is the source for the [`guardcmd-mcp`](https://www.npmjs.com/package/guardcmd-mcp)
-npm package: all 20 tools, the stdio and HTTP transports, and the test suite. It builds
-byte-for-byte to the published `guardcmd-mcp@0.1.0`, and
+npm package: all 24 tools, its prompts and resource, the stdio and HTTP transports, and the test suite. It builds
+byte-for-byte to the published `guardcmd-mcp@0.2.1`, and
 [`mcp/PROVENANCE.md`](mcp/PROVENANCE.md) shows how to check that yourself. The server only
 talks to the public API at `https://api.guardcmd.com`.
 

@@ -1,8 +1,8 @@
-# Provenance: guardcmd-mcp@0.1.0
+# Provenance: guardcmd-mcp@0.2.1
 
 This directory is the auditable source for the [`guardcmd-mcp`](https://www.npmjs.com/package/guardcmd-mcp)
-npm package, version **0.1.0** (tarball integrity
-`sha512-ox4pn+WMpKWNpnVorS9z4YMPvHqTX7521iTDd42D3m8+JrkMSIj3Gp2Syby8cq/HtPqU6ZJh1PWiv3EJYDFOZQ==`).
+npm package, version **0.2.1** (tarball integrity
+`sha512-l0suC7b54TDhlqqmtSiSNdGn4OaNiHOF3OD0O5ln33tQzixxfNCECU2BQE1i5+Qif2S01guOU4+DGEjjAk6G/Q==`).
 
 ## What corresponds to what
 
@@ -14,7 +14,8 @@ npm package, version **0.1.0** (tarball integrity
 | `README.md`, `LICENSE` | `README.md`, `LICENSE` | Identical text; the published copies have CRLF line endings (packed on Windows) |
 | `package.json` | `package.json` | Same manifest; `bin` paths written as `dist/stdio.js` instead of `./dist/stdio.js` (npm treats these as equivalent) |
 | `src/http.ts` | — (not published) | Streamable HTTP transport for the hosted server. Included because the tests exercise its auth and DNS-rebinding protections. |
-| `test/mcp.test.ts` | — (not published) | Protocol and security tests covering all 20 tools |
+| `test/mcp.test.ts` | — (not published) | Protocol and security tests covering every tool |
+| `test/handoff.test.ts` | — (not published) | Fix Pack, security-audit, prompt, resource and tool-hint tests |
 
 `src/http.ts` and `test/mcp.test.ts` differ from the internal copies only in comments that
 referenced internal paths or hosting details. Runtime and test behavior are unchanged.
@@ -36,8 +37,8 @@ npm ci
 npx tsc -p tsconfig.json
 
 # 2. Fetch the published package
-npm pack guardcmd-mcp@0.1.0 --pack-destination /tmp
-mkdir -p /tmp/guardcmd-mcp && tar -xzf /tmp/guardcmd-mcp-0.1.0.tgz -C /tmp/guardcmd-mcp
+npm pack guardcmd-mcp@0.2.1 --pack-destination /tmp
+mkdir -p /tmp/guardcmd-mcp && tar -xzf /tmp/guardcmd-mcp-0.2.1.tgz -C /tmp/guardcmd-mcp
 
 # 3. Compare every published file with the local build
 for f in client.js client.d.ts server.js server.d.ts stdio.js stdio.d.ts; do
@@ -46,7 +47,7 @@ done
 diff --strip-trailing-cr README.md /tmp/guardcmd-mcp/package/README.md && echo "README.md identical"
 diff --strip-trailing-cr LICENSE   /tmp/guardcmd-mcp/package/LICENSE   && echo "LICENSE identical"
 
-# 4. Run the test suite (40 tests; uses a local mock API, no network or key needed)
+# 4. Run the test suite (53 tests; uses a local mock API, no network or key needed)
 npm test
 ```
 

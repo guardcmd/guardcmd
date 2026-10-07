@@ -18,6 +18,12 @@
  *   - POST /v1/recommendations/:id/autofix    -> generate a PR-ready patch for a recommendation
  *   - POST /v1/recommendations/:id/pull-request -> open a REAL GitHub PR for a recommendation
  *
+ * Agent hand-off ("Fix Packs") + imported security audits (same API key):
+ *   - GET  /v1/scans/:id/fix-pack?format=md|json|sarif     -> Fix Pack for a whole scan
+ *   - GET  /v1/recommendations/:id/fix-pack?format=md|json -> Fix Pack for one recommendation
+ *   - POST /v1/projects/:id/audits                          -> upload a security-audit findings.json
+ *   - GET  /v1/projects/:id/audits                          -> list uploaded audits
+ *
  * Policy + decision control plane (account-scoped, same API key):
  *   - GET   /v1/policies?projectId=            -> list policies
  *   - GET   /v1/policies/:id                    -> policy + version history
@@ -43,11 +49,14 @@ export interface ApiErrorBody {
 export class ApiError extends Error {
   readonly code: string;
   readonly status: number;
-  constructor(message: string, code: string, status: number) {
+  /** The parsed error body, when the API sent JSON (e.g. 422 `invalid_findings` carries `errors`). */
+  readonly body?: unknown;
+  constructor(message: string, code: string, status: number, body?: unknown) {
     super(message);
     this.name = "ApiError";
     this.code = code;
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -353,6 +362,42 @@ export interface MetricsSummary {
   [key: string]: unknown;
 }
 
+// ---- Fix Packs + security audits ----
+
+/** Formats a scan Fix Pack can be exported in. */
+export type FixPackFormat = "md" | "json" | "sarif";
+
+/**
+ * A Fix Pack as returned by the API. `md` and `sarif` are kept as the raw response body
+ * (markdown / SARIF text, never re-serialized); `json` is parsed.
+ */
+export type FixPack =
+  | { format: "md" | "sarif"; contentType: string; text: string }
+  | { format: "json"; contentType: string; text: string; data: unknown };
+
+/** Verdict counts for an uploaded security audit (Cloudflare security-audit-skill schema). */
+export interface AuditCounts {
+  confirmed: number;
+  needsValidation: number;
+  rejected: number;
+}
+
+/** Result of POST /v1/projects/:id/audits. */
+export interface AuditUploadResult {
+  id: string;
+  counts: AuditCounts;
+  [key: string]: unknown;
+}
+
+/** A stored audit, as listed by GET /v1/projects/:id/audits (extra fields passed through). */
+export interface AuditSummary {
+  id: string;
+  counts?: AuditCounts;
+  sourceRef?: string | null;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
 export interface GuardCMDClientOptions {
   baseUrl: string;
   apiKey: string;
@@ -610,11 +655,101 @@ export class GuardCMDClient {
     );
   }
 
+  /**
+   * GET /v1/scans/:id/fix-pack?format= — the scan's Fix Pack. Markdown (default) and SARIF come
+   * back as the raw body; JSON is also parsed into `data`.
+   */
+  async getFixPack(scanId: string, format: FixPackFormat = "md"): Promise<FixPack> {
+    return this.fetchFixPack(`/v1/scans/${encodeURIComponent(scanId)}/fix-pack`, format);
+  }
+
+  /** GET /v1/recommendations/:id/fix-pack?format=md|json — a single recommendation's Fix Pack. */
+  async getRecommendationFixPack(
+    recommendationId: string,
+    format: "md" | "json" = "md",
+  ): Promise<FixPack> {
+    return this.fetchFixPack(
+      `/v1/recommendations/${encodeURIComponent(recommendationId)}/fix-pack`,
+      format,
+    );
+  }
+
+  /**
+   * POST /v1/projects/:id/audits — upload a `findings.json` produced by Cloudflare's
+   * security-audit skill. A schema failure is a 422 `invalid_findings` whose `errors` list is
+   * kept on {@link ApiError.body}.
+   */
+  async uploadAudit(
+    projectId: string,
+    findings: unknown[],
+    sourceRef?: string,
+  ): Promise<AuditUploadResult> {
+    const body: Record<string, unknown> = { findings };
+    if (sourceRef) body.sourceRef = sourceRef;
+    return this.request<AuditUploadResult>(
+      "POST",
+      `/v1/projects/${encodeURIComponent(projectId)}/audits`,
+      body,
+    );
+  }
+
+  /** GET /v1/projects/:id/audits — audits uploaded for a project. */
+  async listAudits(projectId: string): Promise<AuditSummary[]> {
+    const res = await this.request<{ audits: AuditSummary[] } | AuditSummary[]>(
+      "GET",
+      `/v1/projects/${encodeURIComponent(projectId)}/audits`,
+    );
+    return Array.isArray(res) ? res : (res.audits ?? []);
+  }
+
+  private async fetchFixPack(basePath: string, format: FixPackFormat): Promise<FixPack> {
+    const accept =
+      format === "json"
+        ? "application/json"
+        : format === "sarif"
+          ? "application/sarif+json, application/json"
+          : "text/markdown, text/plain";
+    const { text, parsed, contentType } = await this.send(
+      "GET",
+      `${basePath}?format=${encodeURIComponent(format)}`,
+      undefined,
+      accept,
+    );
+    if (format === "json") {
+      if (parsed === undefined) {
+        throw new ApiError(
+          `Invalid JSON response from ${this.baseUrl}${basePath}`,
+          "invalid_response",
+          200,
+        );
+      }
+      return { format, contentType, text, data: parsed };
+    }
+    return { format, contentType, text };
+  }
+
   private async request<T>(
     method: "GET" | "POST" | "PATCH",
     path: string,
     body?: unknown,
   ): Promise<T> {
+    const { parsed, status, url } = await this.send(method, path, body, "application/json");
+    if (parsed === undefined) {
+      throw new ApiError(`Invalid JSON response from ${url}`, "invalid_response", status);
+    }
+    return parsed as T;
+  }
+
+  /**
+   * Perform one HTTP call with auth + timeout, normalizing failures to {@link ApiError}.
+   * Returns the raw text (and a best-effort JSON parse) of a 2xx response.
+   */
+  private async send(
+    method: "GET" | "POST" | "PATCH",
+    path: string,
+    body: unknown,
+    accept: string,
+  ): Promise<{ text: string; parsed: unknown; status: number; contentType: string; url: string }> {
     const url = `${this.baseUrl}${path}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -628,7 +763,7 @@ export class GuardCMDClient {
           Authorization: `Bearer ${this.apiKey}`,
           "x-api-key": this.apiKey,
           "content-type": "application/json",
-          accept: "application/json",
+          accept,
         },
         body: body === undefined ? undefined : JSON.stringify(body),
         signal: controller.signal,
@@ -660,17 +795,16 @@ export class GuardCMDClient {
       const message =
         errBody?.error ??
         (text ? text.slice(0, 500) : `HTTP ${res.status} ${res.statusText}`);
-      throw new ApiError(message, code, res.status);
+      throw new ApiError(message, code, res.status, parsed);
     }
 
-    if (parsed === undefined) {
-      throw new ApiError(
-        `Invalid JSON response from ${url}`,
-        "invalid_response",
-        res.status,
-      );
-    }
-    return parsed as T;
+    return {
+      text,
+      parsed,
+      status: res.status,
+      contentType: res.headers?.get?.("content-type") ?? "",
+      url,
+    };
   }
 }
 
