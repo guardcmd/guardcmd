@@ -88,6 +88,27 @@ free-credit and trial farming · LLM token farming and denial of wallet ·
 scraping and bulk export · SMS/OTP toll fraud · spam and abusive content ·
 prompt injection and unauthorized agent tool calls.
 
+## Hand scan results to your agent
+
+A GuardCMD scan produces a **Fix Pack**: `AGENT-TASK.md` with ordered tasks (file, line, why it
+matters, the code to add), plus JSON and SARIF. Share it from the dashboard as an expiring,
+read-only link, then:
+
+```bash
+npx guardcmd fix <handoff-link-or-scan-id>   # writes .guardcmd/AGENT-TASK.md
+```
+
+and tell your agent to apply it. The MCP server exposes the same thing as `get_fix_pack` and the
+`fix_abuse_surfaces` prompt.
+
+## Deep security audits
+
+[`skills/cloudflare-security-audit/`](skills/cloudflare-security-audit/) is Cloudflare's
+[security-audit skill](https://github.com/cloudflare/security-audit-skill) (MIT), vendored
+unchanged so the plugin installs it alongside the GuardCMD skill. Run it on the routes GuardCMD
+flagged and upload its `findings.json` to `POST /v1/projects/:id/audits`; confirmed findings join
+your next Fix Pack. Credit and thanks to Cloudflare.
+
 ## MCP server source
 
 [`mcp/`](mcp/) is the source for the [`guardcmd-mcp`](https://www.npmjs.com/package/guardcmd-mcp)
