@@ -63,7 +63,7 @@ import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { createServer, resolveConfig } from "./server.js";
 
 const SERVICE = "mcp";
-const VERSION = "0.1.0";
+const VERSION = "0.2.1";
 
 /**
  * Max concurrent MCP sessions. Each one costs a transport + an McpServer + its registered

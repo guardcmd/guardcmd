@@ -60,6 +60,31 @@ config files and version control.
 - `create_protection_pr`: preview a protection patch, or open a pull request
   when called with `openPr: true`
 
+**Agent hand-off (Fix Packs)**
+
+- `get_fix_pack`: a scan's Fix Pack — `AGENT-TASK.md` with ordered tasks
+  (file + line, patch, env keys, how to verify); `format` `md` (default),
+  `json`, or `sarif`
+- `get_recommendation_fix_pack`: the same for one recommendation
+- Shareable handoff links are created in the GuardCMD dashboard (they need a
+  signed-in session, not an API key)
+
+**Security audits** (with Cloudflare's
+[security-audit skill](https://github.com/cloudflare/security-audit-skill))
+
+- `upload_security_audit`: upload the skill's `findings.json`; returns
+  confirmed / needs-validation / rejected counts or the validation errors
+- `list_security_audits`
+
+**Prompts and resources**
+
+| Name | What it does |
+| --- | --- |
+| `fix_abuse_surfaces` (scanId) | Fetch the Fix Pack and apply it task by task in shadow mode, testing after each |
+| `protect_repo` (repoUrl, projectId?) | Scan, wait for the scan, fetch the Fix Pack, apply it |
+| `deep_security_audit` (projectId) | Run Cloudflare's security-audit skill on the flagged routes and upload `findings.json` |
+| `guardcmd://scans/{scanId}/fix-pack` | Resource: the scan's `AGENT-TASK.md` (markdown) |
+
 **Policies and decisions**
 
 - `list_policies`, `get_policy`, `set_rate_limit`
